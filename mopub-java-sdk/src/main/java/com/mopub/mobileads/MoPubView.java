@@ -45,6 +45,7 @@ import android.webkit.WebViewDatabase;
 import android.widget.FrameLayout;
 
 import com.mopub.common.LocationService;
+import com.mopub.common.util.ManifestUtils;
 import com.mopub.mobileads.factories.AdViewControllerFactory;
 import com.mopub.mobileads.factories.CustomEventBannerAdapterFactory;
 
@@ -98,6 +99,8 @@ public class MoPubView extends FrameLayout {
 
     public MoPubView(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        ManifestUtils.checkWebViewActivitiesDeclared(context);
 
         mContext = context;
         mIsInForeground = (getVisibility() == VISIBLE);

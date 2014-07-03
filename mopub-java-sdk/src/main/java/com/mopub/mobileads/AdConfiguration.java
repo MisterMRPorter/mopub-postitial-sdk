@@ -42,6 +42,7 @@ import com.mopub.common.MoPub;
 import com.mopub.common.util.DateAndTime;
 import com.mopub.common.util.Utils;
 import com.mopub.common.util.VersionCode;
+import com.mopub.mobileads.util.vast.VastVideoConfiguration;
 
 import org.apache.http.HttpResponse;
 
@@ -94,7 +95,9 @@ public class AdConfiguration implements Serializable {
     private Integer mAdTimeoutDelay;
     private int mRefreshTimeMilliseconds;
     private String mDspCreativeId;
+    
     private boolean postitial;
+	private VastVideoConfiguration vastVideoConfiguration;
 
     public static AdConfiguration extractFromMap(Map<String,Object> map) {
         if (map == null) {
@@ -197,7 +200,7 @@ public class AdConfiguration implements Serializable {
         mResponseString = responseString;
     }
 
-    long getBroadcastIdentifier() {
+    public long getBroadcastIdentifier() {
         return mBroadcastIdentifier;
     }
 
@@ -327,4 +330,13 @@ public class AdConfiguration implements Serializable {
     public boolean isPostitial() {
         return postitial;
     }
+	
+	public VastVideoConfiguration getVastVideoConfiguration() {
+		return this.vastVideoConfiguration;
+	}
+
+	public void setVastVideoConfiguration(VastVideoConfiguration mVastVideoConfiguration) {
+		this.vastVideoConfiguration = mVastVideoConfiguration;
+	}
+	
 }

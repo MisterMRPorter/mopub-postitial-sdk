@@ -33,7 +33,9 @@
 package com.mopub.mobileads;
 
 
+import android.content.Intent;
 import android.net.Uri;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 
@@ -51,6 +53,13 @@ import static com.mopub.mobileads.BaseInterstitialActivity.JavaScriptWebViewCall
 import static com.mopub.mobileads.BaseInterstitialActivity.JavaScriptWebViewCallbacks.WEB_VIEW_DID_CLOSE;
 
 class MraidInterstitial extends ResponseBodyInterstitial {
+    
+    static final String BROADCAST_IDENTIFIER_KEY = "broadcastIdentifier";
+    static final String ACTION_INTERSTITIAL_FAIL = "com.mopub.action.interstitial.fail";
+    static final String ACTION_INTERSTITIAL_SHOW = "com.mopub.action.interstitial.show";
+    static final String ACTION_INTERSTITIAL_DISMISS = "com.mopub.action.interstitial.dismiss";
+    static final String ACTION_INTERSTITIAL_CLICK = "com.mopub.action.interstitial.click";
+    
     private String mHtmlData;
     private CustomEventInterstitialListener interstitialListener;
 
@@ -85,6 +94,16 @@ class MraidInterstitial extends ResponseBodyInterstitial {
                 	mMraidView.loadUrl(WEB_VIEW_DID_APPEAR.getUrl());
                 }
                 public void onFailure(MraidView view) {
+                    
+                    {
+                        
+                        final long broadcastIdentifier = mAdConfiguration.getBroadcastIdentifier();
+                        
+                        Intent intent = new Intent(ACTION_INTERSTITIAL_FAIL);
+                        intent.putExtra(BROADCAST_IDENTIFIER_KEY, broadcastIdentifier);
+                        LocalBroadcastManager.getInstance(mContext.getApplicationContext()).sendBroadcast(intent);
+                        
+                    }
                 //    onFail();
                 }
                 public void onExpand(MraidView view) {
@@ -131,6 +150,8 @@ class MraidInterstitial extends ResponseBodyInterstitial {
 	}
 	
 	public void onInterstitialClicked() {
+	    
+	    
 		interstitialListener.onInterstitialClicked();	
 	}
 

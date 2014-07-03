@@ -33,47 +33,38 @@
 package com.mopub.mobileads;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-import static com.mopub.mobileads.AdFetcher.HTML_RESPONSE_BODY_KEY;
+import static com.mopub.mobileads.AdFetcher.AD_CONFIGURATION_KEY;
+import static com.mopub.mobileads.VastVideoViewController.VAST_VIDEO_CONFIGURATION;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.VideoView;
 
-import com.mopub.mobileads.BaseVideoView.BaseVideoViewListener;
-import com.mopub.mobileads.MraidView.ExpansionStyle;
-import com.mopub.mobileads.MraidView.NativeCloseButtonStyle;
-import com.mopub.mobileads.MraidView.PlacementType;
-import com.mopub.mobileads.MraidView.ViewState;
+import com.mopub.common.CacheService;
+import com.mopub.common.util.MoPubLog;
 import com.mopub.mobileads.factories.VastManagerFactory;
-import com.mopub.mobileads.factories.VastVideoDownloadTaskFactory;
 import com.mopub.mobileads.util.vast.VastManager;
+import com.mopub.mobileads.util.vast.VastVideoConfiguration;
 
-import java.util.*;
+import java.util.Map;
 
-class VastVideoInterstitial extends ResponseBodyInterstitial implements VastManager.VastManagerListener, VastVideoDownloadTask.OnDownloadCompleteListener, BaseVideoView.BaseVideoViewListener {
-    public static final int CACHE_MAX_SIZE = 100 * 1000 * 1000;
-    public static final String VIDEO_CACHE_DIRECTORY_NAME = "mopub_vast_video_cache";
+class VastVideoInterstitial extends ResponseBodyInterstitial implements VastManager.VastManagerListener, BaseVideoViewController.BaseVideoViewControllerListener {
     private CustomEventInterstitialListener mCustomEventInterstitialListener;
-    private VastVideoDownloadTask mVastVideoDownloadTask;
-    private DiskLruCache mVideoCache;
     private String mVastResponse;
-    private String mVideoUrl;
     private VastManager mVastManager;
-    private ArrayList<String> mVideoStartTrackers;
-    private ArrayList<String> mVideoFirstQuartileTrackers;
-    private ArrayList<String> mVideoMidpointTrackers;
-    private ArrayList<String> mVideoThirdQuartileTrackers;
-    private ArrayList<String> mVideoCompleteTrackers;
-    private ArrayList<String> mImpressionTrackers;
-    private String mClickThroughUrl;
-    private ArrayList<String> mClickTrackers;
+    private VastVideoConfiguration mVastVideoConfiguration;
+    
+    public String vastVidNetworkUrl = null;
+//post
+    static final String VIDEO_CLASS_EXTRAS_KEY = "video_view_class_name";
     static final String VIDEO_URL = "video_url";
-    private static final String VIDEO_CLASS_EXTRAS_KEY = "video_view_class_name";
-
+    
     @Override
     protected void extractExtras(Map<String, String> serverExtras) {
         mVastResponse = Uri.decode(serverExtras.get(AdFetcher.HTML_RESPONSE_BODY_KEY));
@@ -83,33 +74,18 @@ class VastVideoInterstitial extends ResponseBodyInterstitial implements VastMana
     protected void preRenderHtml(CustomEventInterstitialListener customEventInterstitialListener) {
         mCustomEventInterstitialListener = customEventInterstitialListener;
 
-        if (mVideoCache == null) {
-            try {
-                mVideoCache = new DiskLruCache(mContext, VIDEO_CACHE_DIRECTORY_NAME, CACHE_MAX_SIZE);
-            } catch (Exception e) {
-                Log.d("MoPub", "Unable to create VAST video cache.");
-                mCustomEventInterstitialListener.onInterstitialFailed(MoPubErrorCode.VIDEO_CACHE_ERROR);
-                return;
-            }
+        if (!CacheService.initializeDiskCache(mContext)) {
+            mCustomEventInterstitialListener.onInterstitialFailed(MoPubErrorCode.VIDEO_CACHE_ERROR);
+            return;
         }
 
-        mVastManager = VastManagerFactory.create();
-        mVastManager.processVast(mVastResponse, this);
+        mVastManager = VastManagerFactory.create(mContext);
+        mVastManager.prepareVastVideoConfiguration(mVastResponse, this);
     }
 
     @Override
     protected void showInterstitial() {
-        MraidVideoPlayerActivity.startVast(mContext,
-                mVideoUrl,
-                mVideoStartTrackers,
-                mVideoFirstQuartileTrackers,
-                mVideoMidpointTrackers,
-                mVideoThirdQuartileTrackers,
-                mVideoCompleteTrackers,
-                mImpressionTrackers,
-                mClickThroughUrl,
-                mClickTrackers,
-                mAdConfiguration);
+        MraidVideoPlayerActivity.startVast(mContext, mVastVideoConfiguration, mAdConfiguration);
     }
 
     @Override
@@ -126,47 +102,16 @@ class VastVideoInterstitial extends ResponseBodyInterstitial implements VastMana
      */
 
     @Override
-    public void onComplete(VastManager vastManager) {
-        mVideoUrl = vastManager.getMediaFileUrl();
-
-        Uri uri = mVideoCache.getUri(mVideoUrl);
-        if (uri != null) {
-            onDownloadSuccess();
-        } else {
-            mVastVideoDownloadTask = VastVideoDownloadTaskFactory.create(this, mVideoCache);
-            mVastVideoDownloadTask.execute(mVideoUrl);
+    public void onVastVideoConfigurationPrepared(final VastVideoConfiguration vastVideoConfiguration) {
+        if (vastVideoConfiguration == null) {
+            mCustomEventInterstitialListener.onInterstitialFailed(MoPubErrorCode.VIDEO_DOWNLOAD_ERROR);
+            return;
         }
-    }
 
-    /*
-     * VastVideoDownloadTask.OnDownloadCompleteListener implementation
-     */
-
-    @Override
-    public void onDownloadSuccess() {
-        mVideoStartTrackers = new ArrayList<String>(mVastManager.getVideoStartTrackers());
-        mVideoFirstQuartileTrackers = new ArrayList<String>(mVastManager.getVideoFirstQuartileTrackers());
-        mVideoMidpointTrackers = new ArrayList<String>(mVastManager.getVideoMidpointTrackers());
-        mVideoThirdQuartileTrackers = new ArrayList<String>(mVastManager.getVideoThirdQuartileTrackers());
-        mVideoCompleteTrackers = new ArrayList<String>(mVastManager.getVideoCompleteTrackers());
-
-        mImpressionTrackers = new ArrayList<String>(mVastManager.getImpressionTrackers());
-
-        mClickThroughUrl = mVastManager.getClickThroughUrl();
-        mClickTrackers = new ArrayList<String>(mVastManager.getClickTrackers());
-
+        mVastVideoConfiguration = vastVideoConfiguration;
         mCustomEventInterstitialListener.onInterstitialLoaded();
     }
 
-    @Override
-    public void onDownloadFailed() {
-        mCustomEventInterstitialListener.onInterstitialFailed(MoPubErrorCode.VIDEO_DOWNLOAD_ERROR);
-    }
-
-    @Deprecated // for testing
-    DiskLruCache getVideoCache() {
-        return mVideoCache;
-    }
 
     @Deprecated // for testing
     String getVastResponse() {
@@ -181,127 +126,68 @@ class VastVideoInterstitial extends ResponseBodyInterstitial implements VastMana
 	@Override
 	public View showInterstitialView() {
 		
-       return startVastPostitial(mContext,
-                mVideoUrl,
-                mVideoStartTrackers,
-                mVideoFirstQuartileTrackers,
-                mVideoMidpointTrackers,
-                mVideoThirdQuartileTrackers,
-                mVideoCompleteTrackers,
-                mImpressionTrackers,
-                mClickThroughUrl,
-                mClickTrackers
-        );               
-        
+		Intent intentVideoPlayerActivity = startVastPostitial(mContext, mVastVideoConfiguration, mAdConfiguration);				
+		
+		VastVideoViewController vastCont = new VastVideoViewController(mContext, intentVideoPlayerActivity.getExtras(), mBroadcastIdentifier, this);
+		 
+		String vastVidUrl = mVastVideoConfiguration.getDiskMediaFileUrl();		
+		Log.d("postitialzz", "vastVidUrl = " + vastVidUrl);
+		
+		vastVidNetworkUrl = mVastVideoConfiguration.getNetworkMediaFileUrl();		
+		Log.d("postitialzz", "vastVidNetworkUrl = " + vastVidNetworkUrl);
+
+		mAdConfiguration.setVastVideoConfiguration(mVastVideoConfiguration);
+		
+		return vastCont.getVideoView();
+		
 	}
 	
-	public View startVastPostitial(
-            Context context,
-            String videoUrl,
-            ArrayList<String> videoStartTrackers,
-            ArrayList<String> videoFirstQuartileTrackers,
-            ArrayList<String> videoMidpointTrackers,
-            ArrayList<String> videoThirdQuartileTrackers,
-            ArrayList<String> videoCompleteTrackers,
-            ArrayList<String> impressionTrackers,
-            String clickThroughUrl,
-            ArrayList<String> clickThroughTrackers) {
-
-        Intent intentVideoPlayerActivity = createIntentVastPostitial(
-                context,
-                videoUrl,
-                videoStartTrackers,
-                videoFirstQuartileTrackers,
-                videoMidpointTrackers,
-                videoThirdQuartileTrackers,
-                videoCompleteTrackers,
-                impressionTrackers,
-                clickThroughUrl,
-                clickThroughTrackers);
+	static Intent startVastPostitial(final Context context,
+            final VastVideoConfiguration vastVideoConfiguration,
+            final AdConfiguration adConfiguration) {
+        final Intent intentVideoPlayerActivity = createIntentVast(context, vastVideoConfiguration, adConfiguration);
         try {
-//            context.startActivity(intentVideoPlayerActivity);
+            //context.startActivity(intentVideoPlayerActivity);
         } catch (ActivityNotFoundException e) {
-            Log.d("MoPub", "Activity MraidVideoPlayerActivity not found. Did you declare it in your AndroidManifest.xml?");
+            MoPubLog.d("Activity MraidVideoPlayerActivity not found. Did you declare it in your AndroidManifest.xml?");
         }
-        
-        String clazz = intentVideoPlayerActivity.getStringExtra(VIDEO_CLASS_EXTRAS_KEY);
-        
-        //MraidVideoPlayerActivity act = new MraidVideoPlayerActivity();
-
-        
-        	if ("vast".equals(clazz)) {
-        		View vastVid = null;       		
-        			vastVid = new VastVideoView(context, intentVideoPlayerActivity, this);
-        			vastVid.setBackgroundColor(Color.BLACK);       		
-        		return vastVid;
-        	} else if ("mraid".equals(clazz)) {
-        		View mraidVid = new MraidVideoView(context, intentVideoPlayerActivity, this);
-            	mraidVid.setBackgroundColor(Color.BLACK);
-            	return mraidVid;
-        	} else {
-        		//act.broadcastInterstitialAction("com.mopub.action.interstitial.fail");
-        		View baseVid = new BaseVideoView(context) {};
-        		baseVid.setBackgroundColor(Color.BLACK);
-        		return baseVid;
-        	}
-        
-        
-        
+		return intentVideoPlayerActivity;
     }
 
-    public Intent createIntentVastPostitial(
-            Context context,
-            String videoUrl,
-            ArrayList<String> videoStartTrackers,
-            ArrayList<String> videoFirstQuartileTrackers,
-            ArrayList<String> videoMidpointTrackers,
-            ArrayList<String> videoThirdQuartileTrackers,
-            ArrayList<String> videoCompleteTrackers,
-            ArrayList<String> impressionTrackers,
-            String clickThroughUrl,
-            ArrayList<String> clickThroughTrackers) {
-    	
-        Intent intentVideoPlayerActivity = new Intent(context, MraidVideoPlayerActivity.class);
+    static Intent createIntentVast(final Context context,
+            final VastVideoConfiguration vastVideoConfiguration,
+            final AdConfiguration adConfiguration) {
+        final Intent intentVideoPlayerActivity = new Intent(context, MraidVideoPlayerActivity.class);
         intentVideoPlayerActivity.setFlags(FLAG_ACTIVITY_NEW_TASK);
         intentVideoPlayerActivity.putExtra(VIDEO_CLASS_EXTRAS_KEY, "vast");
-        intentVideoPlayerActivity.putExtra(VIDEO_URL, videoUrl);
-        intentVideoPlayerActivity.putStringArrayListExtra(VastVideoView.VIDEO_START_TRACKERS, videoStartTrackers);
-        intentVideoPlayerActivity.putStringArrayListExtra(VastVideoView.VIDEO_FIRST_QUARTER_TRACKERS, videoFirstQuartileTrackers);
-        intentVideoPlayerActivity.putStringArrayListExtra(VastVideoView.VIDEO_MID_POINT_TRACKERS, videoMidpointTrackers);
-        intentVideoPlayerActivity.putStringArrayListExtra(VastVideoView.VIDEO_THIRD_QUARTER_TRACKERS, videoThirdQuartileTrackers);
-        intentVideoPlayerActivity.putStringArrayListExtra(VastVideoView.VIDEO_COMPLETE_TRACKERS, videoCompleteTrackers);
-        intentVideoPlayerActivity.putStringArrayListExtra(VastVideoView.VIDEO_IMPRESSION_TRACKERS, impressionTrackers);
-        intentVideoPlayerActivity.putExtra(VastVideoView.VIDEO_CLICK_THROUGH_URL, clickThroughUrl);
-        intentVideoPlayerActivity.putStringArrayListExtra(VastVideoView.VIDEO_CLICK_THROUGH_TRACKERS, clickThroughTrackers);
+        intentVideoPlayerActivity.putExtra(VAST_VIDEO_CONFIGURATION, vastVideoConfiguration);
+        intentVideoPlayerActivity.putExtra(AD_CONFIGURATION_KEY, adConfiguration);
         return intentVideoPlayerActivity;
-        
-
-	  }
+    }
 
 	@Override
-	public void showCloseButton() {
+	public void onSetContentView(View view) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void videoError(boolean shouldFinish) {
+	public void onSetRequestedOrientation(int requestedOrientation) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void videoCompleted(boolean shouldFinish) {
+	public void onFinish() {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void videoClicked() {
+	public void onStartActivityForResult(Class<? extends Activity> clazz,
+			int requestCode, Bundle extras) {
 		// TODO Auto-generated method stub
 		
 	}
- 
-		
-	
+
 }

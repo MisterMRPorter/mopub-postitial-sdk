@@ -98,8 +98,6 @@ abstract class BaseInterstitialActivity extends Activity {
         final AdConfiguration adConfiguration = getAdConfiguration();
         if (adConfiguration != null) {
             mBroadcastIdentifier = adConfiguration.getBroadcastIdentifier();
-        } else {
-            Log.d("MoPub", "Unable to obtain broadcast identifier. Interstitial interactions cannot be tracked.");
         }
 
         createInterstitialCloseButton();

@@ -5,7 +5,7 @@
   <version>${postitial-version}-SNAPSHOT</version>
 	
 	<properties>
-	    <postitial-version>1.6</postitial-version>
+	    <postitial-version>1.7</postitial-version>
 	</properties>
 
 	<build>
@@ -18,16 +18,42 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
+			<plugin>
+           <artifactId>maven-jar-plugin</artifactId>
+           <executions>
+             <execution>
+               <phase>package</phase>
+               <goals>
+                 <goal>jar</goal>
+               </goals>
+ 
+             </execution>
+           </executions>
+         </plugin>
+			
 		</plugins>
 	</build>
+	
 
 	<dependencies>
+	    
+	    <dependency>
+			<groupId>unity</groupId>
+			<artifactId>unity-android</artifactId>
+			<version>classes</version>
+		</dependency>
 
 		<!-- http://code.google.com/p/log4j-android/ -->
 		<dependency>
 			<groupId>ufwa-common</groupId>
 			<artifactId>log4j-android</artifactId>
 			<version>1.2.17-1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>iqzone</groupId>
+			<artifactId>iq-webview</artifactId>
+			<version>1.7-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -43,27 +69,15 @@
 		</dependency>
 
 		<dependency>
-			<groupId>iqzone</groupId>
-			<artifactId>iq-java-common</artifactId>
-			<version>${postitial-version}-SNAPSHOT</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.2</version>
 		</dependency>
-
-		<dependency>
-			<groupId>iqzone</groupId>
-			<artifactId>iq-android-common</artifactId>
-			<version>${postitial-version}-SNAPSHOT</version>
-		</dependency>
-
-		<dependency>
-			<groupId>ufwa-common</groupId>
-			<artifactId>java-common</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-
+		
 		<dependency>
 			<groupId>com.google.android</groupId>
 			<artifactId>android</artifactId>
-			<version>4.2</version>
+			<version>4.4</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -72,6 +86,20 @@
 			<artifactId>junit</artifactId>
 			<version>4.8.1</version>
 			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>google</groupId>
+			<artifactId>admob</artifactId>
+			<version>6.4.1</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>MillennialMedia</groupId>
+			<artifactId>MMSDK</artifactId>
+			<version>5.1.0</version>
+			<scope>provided</scope>
 		</dependency>
 
 	</dependencies>
