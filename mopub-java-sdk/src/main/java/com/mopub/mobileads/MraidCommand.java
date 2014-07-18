@@ -162,6 +162,11 @@ class MraidCommandClose extends MraidCommand {
     @Override
     void execute() {
         mView.getDisplayController().close();
+        
+        boolean isPostitial = mView.getAdConfiguration().isPostitial();        
+        if(isPostitial){
+            mView.getMraidListener().onClosePostitialSession(mView);
+        }
     }
 }
 
