@@ -36,6 +36,13 @@
 	
 
 	<dependencies>
+	    		
+		<dependency>
+			<groupId>com.google.android.gms</groupId>
+			<artifactId>play-services</artifactId>
+			<version>5.0.77</version>
+			<type>jar</type>
+		</dependency>
 	    
 	    <dependency>
 			<groupId>unity</groupId>

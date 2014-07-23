@@ -865,8 +865,13 @@ class MraidDisplayController extends MraidAbstractController {
         }
 
         public void unregister() {
-            mContext.unregisterReceiver(this);
-            mContext = null;
+            
+            if(mContext != null) {
+                
+                mContext.unregisterReceiver(this);
+                mContext = null;
+                
+            }
         }
     }
 }
