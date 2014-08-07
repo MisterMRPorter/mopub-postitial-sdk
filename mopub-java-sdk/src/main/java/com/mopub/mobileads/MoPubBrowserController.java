@@ -37,6 +37,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
+
 import com.mopub.common.MoPubBrowser;
 import com.mopub.common.util.IntentUtils;
 import com.mopub.mobileads.util.Utils;
@@ -69,6 +70,7 @@ class MoPubBrowserController extends MraidAbstractController {
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         mContext.startActivity(i);
     }
+
 
     private boolean launchApplicationUrl(String url) {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));

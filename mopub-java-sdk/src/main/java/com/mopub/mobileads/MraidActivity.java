@@ -180,6 +180,8 @@ public class MraidActivity extends BaseInterstitialActivity {
                     WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                     WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
         }
+
+        addCloseEventRegion();
     }
 
     @Override

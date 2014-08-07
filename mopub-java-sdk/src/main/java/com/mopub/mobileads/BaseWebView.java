@@ -33,7 +33,7 @@
 package com.mopub.mobileads;
 
 import android.content.Context;
-import android.util.Log;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import com.IQzone.webview.AdvancedWebView;
@@ -62,27 +62,10 @@ public class BaseWebView extends AdvancedWebView {
             return;
         }
 
-        if (VersionCode.currentApiLevel().isBelow(VersionCode.FROYO)) {
-            // Note: this is needed to compile against api level 18.
-            try {
-                Method method = Class.forName("android.webkit.WebSettings").getDeclaredMethod("setPluginsEnabled", boolean.class);
-                method.invoke(getSettings(), enabled);
-            } catch (Exception e) {
-                Log.d("MoPub", "Unable to " + (enabled ? "enable" : "disable") + "WebSettings plugins for BaseWebView.");
-            }
+        if (enabled) {
+            getSettings().setPluginState(WebSettings.PluginState.ON);
         } else {
-
-            try {
-                Class<Enum> pluginStateClass = (Class<Enum>) Class.forName("android.webkit.WebSettings$PluginState");
-
-                Class<?>[] parameters = {pluginStateClass};
-                Method method = getSettings().getClass().getDeclaredMethod("setPluginState", parameters);
-
-                Object pluginState = Enum.valueOf(pluginStateClass, enabled ? "ON" : "OFF");
-                method.invoke(getSettings(), pluginState);
-            } catch (Exception e) {
-                Log.d("MoPub", "Unable to modify WebView plugin state.");
-            }
+            getSettings().setPluginState(WebSettings.PluginState.OFF);
         }
     }
 

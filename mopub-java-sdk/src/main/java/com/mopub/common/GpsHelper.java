@@ -2,16 +2,16 @@ package com.mopub.common;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
+
 import com.mopub.common.factories.MethodBuilderFactory;
+import com.mopub.common.util.AsyncTasks;
 import com.mopub.common.util.MoPubLog;
+
+import java.lang.ref.WeakReference;
 
 import static com.mopub.common.util.Reflection.MethodBuilder;
 import static com.mopub.common.util.Reflection.classFound;
-import static com.mopub.mobileads.AdTypeTranslator.CustomEventType;
-import static com.mopub.mobileads.AdTypeTranslator.CustomEventType.ADMOB_BANNER;
-import static com.mopub.mobileads.AdTypeTranslator.CustomEventType.ADMOB_INTERSTITIAL;
-import static com.mopub.mobileads.AdTypeTranslator.CustomEventType.GOOGLE_PLAY_BANNER;
-import static com.mopub.mobileads.AdTypeTranslator.CustomEventType.GOOGLE_PLAY_INTERSTITIAL;
 
 public class GpsHelper {
     static public final int GOOGLE_PLAY_SUCCESS_CODE = 0;
@@ -22,21 +22,6 @@ public class GpsHelper {
 
     public interface GpsHelperListener {
         public void onFetchAdInfoCompleted();
-    }
-
-    static public CustomEventType convertAdMobToGooglePlayServices(final Context context, final CustomEventType customEventType) {
-        // In both cases, only check if GooglePlayServices is available if absolutely necessary
-        if (customEventType == ADMOB_BANNER &&
-                classFound(GOOGLE_PLAY_BANNER.toString()) &&
-                isGpsAvailable(context)) {
-            return GOOGLE_PLAY_BANNER;
-        } else if (customEventType == ADMOB_INTERSTITIAL &&
-                classFound(GOOGLE_PLAY_INTERSTITIAL.toString()) &&
-                isGpsAvailable(context)) {
-            return GOOGLE_PLAY_INTERSTITIAL;
-        }
-
-        return customEventType;
     }
 
     static boolean isGpsAvailable(final Context context) {
@@ -94,36 +79,68 @@ public class GpsHelper {
         asyncFetchAdvertisingInfo(context, null);
     }
 
+    static private class FetchAdvertisingInfoTask extends AsyncTask<Void, Void, Void> {
+        private WeakReference<Context> mContextWeakReference;
+        private WeakReference<GpsHelperListener> mGpsHelperListenerWeakReference;
+
+        public FetchAdvertisingInfoTask(Context context, GpsHelperListener gpsHelperListener) {
+            mContextWeakReference = new WeakReference<Context>(context);
+            mGpsHelperListenerWeakReference = new WeakReference<GpsHelperListener>(gpsHelperListener);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                Context context = mContextWeakReference.get();
+                if (context == null) {
+                    return null;
+                }
+
+                MethodBuilder methodBuilder = MethodBuilderFactory.create(null, "getAdvertisingIdInfo")
+                        .setStatic(Class.forName(sAdvertisingIdClientClassName))
+                        .addParam(Context.class, context);
+
+                Object adInfo = methodBuilder.execute();
+
+                if (adInfo != null) {
+                    updateSharedPreferences(context, adInfo);
+                }
+            } catch (Exception exception) {
+                MoPubLog.d("Unable to obtain AdvertisingIdClient.getAdvertisingIdInfo()");
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            GpsHelperListener gpsHelperListener = mGpsHelperListenerWeakReference.get();
+            if (gpsHelperListener != null) {
+                gpsHelperListener.onFetchAdInfoCompleted();
+            }
+        }
+    }
+
     static public void asyncFetchAdvertisingInfo(final Context context, final GpsHelperListener gpsHelperListener) {
         if (!classFound(sAdvertisingIdClientClassName)) {
             if (gpsHelperListener != null) {
                 gpsHelperListener.onFetchAdInfoCompleted();
             }
+
+            return;
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    MethodBuilder methodBuilder = MethodBuilderFactory.create(null, "getAdvertisingIdInfo")
-                            .setStatic(Class.forName(sAdvertisingIdClientClassName))
-                            .addParam(Context.class, context);
+        try {
+            AsyncTasks.safeExecuteOnExecutor(new FetchAdvertisingInfoTask(context, gpsHelperListener));
+        } catch (Exception exception) {
+            MoPubLog.d("Error executing FetchAdvertisingInfoTask", exception);
 
-                    Object adInfo = methodBuilder.execute();
-
-                    if (adInfo != null) {
-                        updateSharedPreferences(context, adInfo);
-                    }
-                } catch (Exception exception) {
-                    MoPubLog.d("Unable to obtain AdvertisingIdClient.getAdvertisingIdInfo()");
-                } finally {
-                    if (gpsHelperListener != null) {
-                        gpsHelperListener.onFetchAdInfoCompleted();
-                    }
-                }
+            if (gpsHelperListener != null) {
+                gpsHelperListener.onFetchAdInfoCompleted();
             }
-        }).start();
+        }
     }
+
 
     static void updateSharedPreferences(final Context context, final Object adInfo) {
         String advertisingId = reflectedGetAdvertisingId(adInfo, null);

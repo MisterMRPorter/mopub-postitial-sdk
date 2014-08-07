@@ -251,7 +251,6 @@ public class HtmlWebViewClient extends WebViewClient {
         if (wasIntentStarted) {
             mHtmlWebViewListener.onClicked();
             mHtmlWebView.onResetUserClick();
-            //mHtmlWebViewListener.closePostitialSession();
         }
 
         return wasIntentStarted;
