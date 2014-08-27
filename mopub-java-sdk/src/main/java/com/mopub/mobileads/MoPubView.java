@@ -200,6 +200,29 @@ public class MoPubView extends FrameLayout {
                 this,
                 paramsMap.get(CUSTOM_EVENT_NAME.getKey()),
                 paramsMap.get(CUSTOM_EVENT_DATA.getKey()));
+        
+        Log.d("MoPub", "Custom event name = " + paramsMap.get(CUSTOM_EVENT_NAME.getKey()));
+        
+        List<String> unsupportedPostitialNetworks = new ArrayList<String>();
+        unsupportedPostitialNetworks.add("com.mopub.mobileads.GooglePlayServices");
+        unsupportedPostitialNetworks.add("com.mopub.mobileads.Millennial");
+        unsupportedPostitialNetworks.add("com.mopub.mobileads.AdColony");
+        unsupportedPostitialNetworks.add("com.mopub.mobileads.Chartboost");
+        unsupportedPostitialNetworks.add("com.mopub.mobileads.Facebook");
+        unsupportedPostitialNetworks.add("com.mopub.mobileads.Greystripe");
+        unsupportedPostitialNetworks.add("com.mopub.mobileads.Vungle");  
+        unsupportedPostitialNetworks.add("com.mopub.mobileads.InMobi"); 
+        
+        if(this.mAdViewController.getAdConfiguration().isPostitial()) {
+            for(String iterateHolderVariable : unsupportedPostitialNetworks) {
+                if(paramsMap.get(CUSTOM_EVENT_NAME.getKey()).toLowerCase().startsWith(iterateHolderVariable.toLowerCase())) {
+                    Log.d("MoPub", "Postitial does not currently support this network");
+                    loadFailUrl(ADAPTER_NOT_FOUND);
+                    return;
+                }
+            }
+        }
+        
         mCustomEventBannerAdapter.loadAd();
     }
 
