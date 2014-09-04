@@ -45,18 +45,21 @@ import android.webkit.WebViewDatabase;
 import android.widget.FrameLayout;
 
 import com.mopub.common.util.ManifestUtils;
+import com.mopub.common.util.Visibility;
 import com.mopub.mobileads.factories.AdViewControllerFactory;
 import com.mopub.mobileads.factories.CustomEventBannerAdapterFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-import static com.mopub.common.LocationService.*;
-import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
+import static com.mopub.common.LocationService.LocationAwareness;
 import static com.mopub.common.util.ResponseHeader.CUSTOM_EVENT_DATA;
 import static com.mopub.common.util.ResponseHeader.CUSTOM_EVENT_NAME;
+import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
 
 public class MoPubView extends FrameLayout {
-
     public interface BannerAdListener {
         public void onBannerLoaded(MoPubView banner);
         public void onBannerFailed(MoPubView banner, MoPubErrorCode errorCode);
@@ -76,11 +79,10 @@ public class MoPubView extends FrameLayout {
     protected CustomEventBannerAdapter mCustomEventBannerAdapter;
 
     private Context mContext;
+    private int mScreenVisibility;
     private BroadcastReceiver mScreenStateReceiver;
-    private boolean mIsInForeground;
     private LocationAwareness mLocationAwareness;
-    private boolean mPreviousAutorefreshSetting = false;
-    
+
     private BannerAdListener mBannerAdListener;
     
     private OnAdWillLoadListener mOnAdWillLoadListener;
@@ -100,7 +102,7 @@ public class MoPubView extends FrameLayout {
         ManifestUtils.checkWebViewActivitiesDeclared(context);
 
         mContext = context;
-        mIsInForeground = (getVisibility() == VISIBLE);
+        mScreenVisibility = getVisibility();
         mLocationAwareness = LocationAwareness.NORMAL;
 
         setHorizontalScrollBarEnabled(false);
@@ -125,16 +127,16 @@ public class MoPubView extends FrameLayout {
     private void registerScreenStateBroadcastReceiver() {
         mScreenStateReceiver = new BroadcastReceiver() {
             public void onReceive(final Context context, final Intent intent) {
-                if (!mIsInForeground || intent == null) {
+                if (!Visibility.isScreenVisible(mScreenVisibility) || intent == null) {
                     return;
                 }
 
                 final String action = intent.getAction();
 
                 if (Intent.ACTION_USER_PRESENT.equals(action)) {
-                    setAdVisibility(true);
+                    setAdVisibility(View.VISIBLE);
                 } else if (Intent.ACTION_SCREEN_OFF.equals(action)) {
-                    setAdVisibility(false);
+                    setAdVisibility(View.GONE);
                 }
             }
         };
@@ -241,19 +243,20 @@ public class MoPubView extends FrameLayout {
     }
 
     @Override
-    protected void onWindowVisibilityChanged(int visibility) {
-        final boolean isVisible = (visibility == VISIBLE);
-
-        mIsInForeground = isVisible;
-        setAdVisibility(isVisible);
+    protected void onWindowVisibilityChanged(final int visibility) {
+        // Ignore transitions between View.GONE and View.INVISIBLE
+        if (Visibility.hasScreenVisibilityChanged(mScreenVisibility, visibility)) {
+            mScreenVisibility = visibility;
+            setAdVisibility(mScreenVisibility);
+        }
     }
 
-    private void setAdVisibility(boolean isVisible) {
+    private void setAdVisibility(final int visibility) {
         if (mAdViewController == null) {
             return;
         }
 
-        if (isVisible) {
+        if (Visibility.isScreenVisible(visibility)) {
 			if(!mAdViewController.getAdConfiguration().isPostitial()) {
             	mAdViewController.unpauseRefresh();
 			}
@@ -339,14 +342,6 @@ public class MoPubView extends FrameLayout {
         return (mAdViewController != null) ? mAdViewController.getKeywords() : null;
     }
 
-    public void setFacebookSupported(boolean enabled) {
-        if (mAdViewController != null) mAdViewController.setFacebookSupported(enabled);
-    }
-
-    public boolean isFacebookSupported() {
-        return (mAdViewController != null) ? mAdViewController.isFacebookSupported() : false;
-    }
-
     public void setLocation(Location location) {
         if (mAdViewController != null) mAdViewController.setLocation(location);
     }
@@ -419,7 +414,9 @@ public class MoPubView extends FrameLayout {
     }
 
     public void setAutorefreshEnabled(boolean enabled) {
-        if (mAdViewController != null) mAdViewController.setAutorefreshEnabled(enabled);
+        if (mAdViewController != null) {
+            mAdViewController.forceSetAutorefreshEnabled(enabled);
+        }
     }
 
     public boolean getAutorefreshEnabled() {
@@ -430,7 +427,7 @@ public class MoPubView extends FrameLayout {
             return false;
         }
     }
-    
+
     public void setAdContentView(View view) {
         if (mAdViewController != null) mAdViewController.setAdContentView(view);
     }
@@ -550,5 +547,17 @@ public class MoPubView extends FrameLayout {
 		return this.mAdViewController.getAdConfiguration().isPostitial();
 	}
 
+    /**
+     * @deprecated As of release 2.4
+     */
+    @Deprecated
+    public void setFacebookSupported(boolean enabled) {}
 
+    /**
+     * @deprecated As of release 2.4
+     */
+    @Deprecated
+    public boolean isFacebookSupported() {
+        return false;
+    }
 }

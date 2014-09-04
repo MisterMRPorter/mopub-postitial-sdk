@@ -41,10 +41,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ClientConnectionManager;
 
-import static com.mopub.mobileads.util.HttpResponses.extractHeader;
 import static com.mopub.common.util.ResponseHeader.AD_TYPE;
 import static com.mopub.common.util.ResponseHeader.USER_AGENT;
 import static com.mopub.common.util.ResponseHeader.WARMUP;
+import static com.mopub.mobileads.util.HttpResponses.extractHeader;
 
 public class AdFetchTask extends AsyncTask<String, Void, AdLoadTask> {
     private TaskTracker mTaskTracker;
@@ -109,7 +109,7 @@ public class AdFetchTask extends AsyncTask<String, Void, AdLoadTask> {
         // Ensure that the ad type header is valid and not "clear".
         String adType = extractHeader(response, AD_TYPE);
         if ("clear".equals(adType)) {
-            Log.d("MoPub", "No inventory found for adunit (" + mAdViewController.getAdUnitId() + ").");
+            Log.d("MoPub", "No ads found for adunit (" + mAdViewController.getAdUnitId() + ").");
             mFetchStatus = AdFetcher.FetchStatus.CLEAR_AD_TYPE;
             return false;
         }
