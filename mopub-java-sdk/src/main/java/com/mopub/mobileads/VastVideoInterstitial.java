@@ -47,7 +47,6 @@ import android.view.View;
 import android.widget.VideoView;
 
 import com.mopub.common.CacheService;
-import com.mopub.common.util.MoPubLog;
 import com.mopub.mobileads.factories.VastManagerFactory;
 import com.mopub.mobileads.util.vast.VastManager;
 import com.mopub.mobileads.util.vast.VastVideoConfiguration;
@@ -149,7 +148,7 @@ class VastVideoInterstitial extends ResponseBodyInterstitial implements VastMana
         try {
             //context.startActivity(intentVideoPlayerActivity);
         } catch (ActivityNotFoundException e) {
-            MoPubLog.d("Activity MraidVideoPlayerActivity not found. Did you declare it in your AndroidManifest.xml?");
+            Log.d("MoPub", "Activity MraidVideoPlayerActivity not found. Did you declare it in your AndroidManifest.xml?");
         }
 		return intentVideoPlayerActivity;
     }

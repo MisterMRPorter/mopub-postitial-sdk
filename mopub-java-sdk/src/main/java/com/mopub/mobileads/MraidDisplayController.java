@@ -64,7 +64,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
-
+import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.Dips;
 import com.mopub.common.util.Streams;
 import com.mopub.mobileads.MraidView.ExpansionStyle;
@@ -75,23 +75,16 @@ import com.mopub.mobileads.factories.HttpClientFactory;
 import com.mopub.mobileads.util.HttpResponses;
 import com.mopub.mobileads.util.Interstitials;
 import com.mopub.mobileads.util.Mraids;
-
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static android.graphics.Color.TRANSPARENT;
 import static com.mopub.common.util.Drawables.INTERSTITIAL_CLOSE_BUTTON_NORMAL;
@@ -347,7 +340,7 @@ class MraidDisplayController extends MraidAbstractController {
         Context context = getContext();
         if (!isStorePictureSupported(context)) {
             getMraidView().fireErrorEvent(STORE_PICTURE, "Error downloading file - the device does not have an SD card mounted, or the Android permission is not granted.");
-            Log.d("MoPub", "Error downloading file - the device does not have an SD card mounted, or the Android permission is not granted.");
+            MoPubLog.d("Error downloading file - the device does not have an SD card mounted, or the Android permission is not granted.");
             return;
         }
 
@@ -408,7 +401,7 @@ class MraidDisplayController extends MraidAbstractController {
                         public void run() {
                             showUserToast("Image failed to download.");
                             getMraidView().fireErrorEvent(STORE_PICTURE, "Error downloading and saving image file.");
-                            Log.d("MoPub", "Error downloading and saving image file.");
+                            MoPubLog.d("Error downloading and saving image file.");
                         }
                     });
                 } finally {

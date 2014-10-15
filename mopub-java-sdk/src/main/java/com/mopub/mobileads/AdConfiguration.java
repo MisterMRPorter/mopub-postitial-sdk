@@ -46,8 +46,8 @@ import com.mopub.mobileads.util.vast.VastVideoConfiguration;
 
 import org.apache.http.HttpResponse;
 
-import java.io.Serializable;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 import static com.mopub.common.util.ResponseHeader.AD_TIMEOUT;
 import static com.mopub.common.util.ResponseHeader.AD_TYPE;

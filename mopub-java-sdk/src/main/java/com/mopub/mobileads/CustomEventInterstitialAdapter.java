@@ -38,6 +38,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.mopub.common.util.Json;
+import com.mopub.common.logging.MoPubLog;
 import com.mopub.mobileads.CustomEventInterstitial.CustomEventInterstitialListener;
 import com.mopub.mobileads.factories.CustomEventInterstitialFactory;
 
@@ -71,17 +72,17 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         mTimeout = new Runnable() {
             @Override
             public void run() {
-                Log.d("MoPub", "Third-party network timed out.");
+                MoPubLog.d("Third-party network timed out.");
                 onInterstitialFailed(NETWORK_TIMEOUT);
                 invalidate();
             }
         };
 
-        Log.d("MoPub", "Attempting to invoke custom event: " + className);
+        MoPubLog.d("Attempting to invoke custom event: " + className);
         try {
             mCustomEventInterstitial = CustomEventInterstitialFactory.create(className);
         } catch (Exception exception) {
-            Log.d("MoPub", "Couldn't locate or instantiate custom event: " + className + ".");
+            MoPubLog.d("Couldn't locate or instantiate custom event: " + className + ".");
             mMoPubInterstitial.onCustomEventInterstitialFailed(ADAPTER_NOT_FOUND);
             return;
         }
@@ -90,7 +91,7 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         try {
             mServerExtras = Json.jsonStringToMap(jsonParams);
         } catch (Exception exception) {
-            Log.d("MoPub", "Failed to create Map from JSON: " + jsonParams);
+            MoPubLog.d("Failed to create Map from JSON: " + jsonParams);
         }
 
         mLocalExtras = mMoPubInterstitial.getLocalExtras();
