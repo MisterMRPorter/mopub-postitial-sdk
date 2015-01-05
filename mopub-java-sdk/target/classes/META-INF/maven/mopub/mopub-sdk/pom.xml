@@ -36,6 +36,12 @@
 	
 
 	<dependencies>
+	    
+	    <dependency>
+            <groupId>android-support-annotations</groupId>
+            <artifactId>annotations</artifactId>
+            <version>1.0</version>
+        </dependency>
 	    	    		
 		<dependency>
 			<groupId>com.google.android.gms</groupId>
@@ -57,12 +63,6 @@
 			<version>1.2.17-1</version>
 		</dependency>
 		
-		<dependency>
-			<groupId>iqzone</groupId>
-			<artifactId>iq-webview</artifactId>
-			<version>1.7-SNAPSHOT</version>
-		</dependency>
-
 		<dependency>
 			<groupId>com.google.android</groupId>
 			<artifactId>support-v4</artifactId>

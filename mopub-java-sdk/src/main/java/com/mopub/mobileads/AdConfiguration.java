@@ -6,10 +6,12 @@ import android.provider.Settings;
 import android.webkit.WebView;
 
 import com.mopub.common.MoPub;
+import com.mopub.common.VisibleForTesting;
 import com.mopub.common.util.DateAndTime;
 import com.mopub.common.util.Utils;
 import com.mopub.common.util.VersionCode;
 import com.mopub.mobileads.util.vast.VastVideoConfiguration;
+import com.mopub.mraid.MraidController;
 
 import org.apache.http.HttpResponse;
 
@@ -18,7 +20,7 @@ import java.util.Map;
 
 import static com.mopub.common.util.ResponseHeader.AD_TIMEOUT;
 import static com.mopub.common.util.ResponseHeader.AD_TYPE;
-import static com.mopub.common.util.ResponseHeader.CLICKTHROUGH_URL;
+import static com.mopub.common.util.ResponseHeader.CLICK_TRACKING_URL;
 import static com.mopub.common.util.ResponseHeader.DSP_CREATIVE_ID;
 import static com.mopub.common.util.ResponseHeader.FAIL_URL;
 import static com.mopub.common.util.ResponseHeader.HEIGHT;
@@ -28,9 +30,9 @@ import static com.mopub.common.util.ResponseHeader.REDIRECT_URL;
 import static com.mopub.common.util.ResponseHeader.REFRESH_TIME;
 import static com.mopub.common.util.ResponseHeader.WIDTH;
 import static com.mopub.mobileads.AdFetcher.AD_CONFIGURATION_KEY;
-import static com.mopub.mobileads.util.HttpResponses.extractHeader;
-import static com.mopub.mobileads.util.HttpResponses.extractIntHeader;
-import static com.mopub.mobileads.util.HttpResponses.extractIntegerHeader;
+import static com.mopub.common.network.HeaderUtils.extractHeader;
+import static com.mopub.common.network.HeaderUtils.extractIntHeader;
+import static com.mopub.common.network.HeaderUtils.extractIntegerHeader;
 
 public class AdConfiguration implements Serializable {
     private static final long serialVersionUID = 0L;
@@ -63,10 +65,12 @@ public class AdConfiguration implements Serializable {
     private int mRefreshTimeMilliseconds;
     private String mDspCreativeId;
     
+    private MraidController mMraidController;
+    
     private boolean postitial;
 	private VastVideoConfiguration vastVideoConfiguration;
 
-    static AdConfiguration extractFromMap(Map<String,Object> map) {
+    public static AdConfiguration extractFromMap(Map<String, Object> map) {
         if (map == null) {
             return null;
         }
@@ -80,7 +84,8 @@ public class AdConfiguration implements Serializable {
         return null;
     }
 
-    AdConfiguration(final Context context) {
+    @VisibleForTesting
+    public AdConfiguration(final Context context) {
         setDefaults();
 
         if (context != null) {
@@ -106,6 +111,9 @@ public class AdConfiguration implements Serializable {
     }
 
     void addHttpResponse(final HttpResponse httpResponse) {
+        // Set the type of ad that has been returned, i.e. "html", "mraid"
+        // For interstitials, this header is set to "interstitial" and the type of interstitial
+        // is stored in the FULL_AD_TYPE header
         mAdType = extractHeader(httpResponse, AD_TYPE);
 
         // Set the network type of the ad.
@@ -115,7 +123,7 @@ public class AdConfiguration implements Serializable {
         mRedirectUrl = extractHeader(httpResponse, REDIRECT_URL);
 
         // Set the URL that is prepended to links for click-tracking purposes.
-        mClickthroughUrl = extractHeader(httpResponse, CLICKTHROUGH_URL);
+        mClickthroughUrl = extractHeader(httpResponse, CLICK_TRACKING_URL);
 
         // Set the fall-back URL to be used if the current request fails.
         mFailUrl = extractHeader(httpResponse, FAIL_URL);
@@ -163,7 +171,8 @@ public class AdConfiguration implements Serializable {
         return mResponseString;
     }
 
-    void setResponseString(String responseString) {
+    @VisibleForTesting
+    public void setResponseString(String responseString) {
         mResponseString = responseString;
     }
 
@@ -305,5 +314,13 @@ public class AdConfiguration implements Serializable {
 	public void setVastVideoConfiguration(VastVideoConfiguration mVastVideoConfiguration) {
 		this.vastVideoConfiguration = mVastVideoConfiguration;
 	}
+
+    public void setMraidController(MraidController mraidController) {       
+        this.mMraidController = mraidController;        
+    }
+    
+    public MraidController getMraidController() {       
+        return mMraidController; 
+    }
 	
 }

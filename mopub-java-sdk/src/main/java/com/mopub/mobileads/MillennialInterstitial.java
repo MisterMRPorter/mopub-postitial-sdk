@@ -36,6 +36,7 @@ import android.content.Context;
 import android.location.Location;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.millennialmedia.android.*;
 
@@ -175,9 +176,10 @@ class MillennialInterstitial extends CustomEventInterstitial {
         }
     }
 
-	@Override
-	protected View showInterstitialView() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+
+    @Override
+    protected View showInterstitialView(ViewGroup holder) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

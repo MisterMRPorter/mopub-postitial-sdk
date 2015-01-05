@@ -2,6 +2,7 @@ package com.mopub.mobileads;
 
 import android.content.Context;
 import android.view.View;
+import android.view.ViewGroup;
 
 import java.util.Map;
 
@@ -41,7 +42,7 @@ public abstract class CustomEventInterstitial {
      */
     protected abstract void showInterstitial();
     
-    protected abstract View showInterstitialView();
+    protected abstract View showInterstitialView(ViewGroup holder);
     
     /*
      * Called when a Custom Event is being invalidated or destroyed. Perform any final cleanup here.

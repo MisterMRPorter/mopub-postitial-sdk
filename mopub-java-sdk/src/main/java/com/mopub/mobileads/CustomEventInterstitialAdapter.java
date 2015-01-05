@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.Json;
@@ -91,11 +92,11 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         mCustomEventInterstitial.showInterstitial();
     }
     
-    View showInterstitialView() {
+    View showInterstitialView(ViewGroup holder) {
         if (isInvalidated() || mCustomEventInterstitial == null) {
         	return null;
         }else{
-            return mCustomEventInterstitial.showInterstitialView();
+            return mCustomEventInterstitial.showInterstitialView(holder);
         }
     }
 

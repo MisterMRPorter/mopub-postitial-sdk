@@ -11,6 +11,8 @@ import android.util.Log;
 import android.view.View;
 import android.webkit.WebViewDatabase;
 import android.widget.FrameLayout;
+
+import com.mopub.common.Constants;
 import com.mopub.common.MoPub;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.ManifestUtils;
@@ -18,7 +20,10 @@ import com.mopub.common.util.Visibility;
 import com.mopub.mobileads.factories.AdViewControllerFactory;
 import com.mopub.mobileads.factories.CustomEventBannerAdapterFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.mopub.common.LocationService.LocationAwareness;
 import static com.mopub.common.util.ResponseHeader.CUSTOM_EVENT_DATA;
@@ -36,9 +41,6 @@ public class MoPubView extends FrameLayout {
 		public void onClosePostitialSession(MoPubView banner);
     }
 
-    public static final String HOST = "ads.mopub.com";
-    public static final String HOST_FOR_TESTING = "testing.ads.mopub.com";
-    public static final String AD_HANDLER = "/m/ad";
     public static final int DEFAULT_LOCATION_PRECISION = 6;
 
     protected AdViewController mAdViewController;

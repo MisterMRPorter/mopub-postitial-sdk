@@ -8,6 +8,7 @@ import java.util.Map;
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -123,7 +124,10 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
     }
 
     @Override
-    protected View showInterstitialView() {
+    protected View showInterstitialView(ViewGroup holder) {
+        // TODO Auto-generated method stub
         return null;
     }
+
+
 }

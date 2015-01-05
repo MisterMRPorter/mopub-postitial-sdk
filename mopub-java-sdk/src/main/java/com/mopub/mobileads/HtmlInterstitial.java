@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -56,12 +57,12 @@ public class HtmlInterstitial extends ResponseBodyInterstitial {
     }
 
     @Override
-    protected void showInterstitial() {
+    public void showInterstitial() {
         MoPubActivity.start(mContext, mHtmlData, mIsScrollable, mRedirectUrl, mClickthroughUrl, mAdConfiguration);
     }
 
     @Override
-    public View showInterstitialView() {
+    public View showInterstitialView(ViewGroup holder) {
         
         boolean isScrollable = mIsScrollable;
         String redirectUrl = mRedirectUrl;

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.location.Location;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.mopub.common.MoPub;
 import com.mopub.common.logging.MoPubLog;
@@ -109,17 +110,17 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
         if (mCustomEventInterstitialAdapter != null) mCustomEventInterstitialAdapter.showInterstitial();
     }
     
-    public View showView() {
+    public View showView(ViewGroup holder) {
         switch (mCurrentInterstitialState) {
             case CUSTOM_EVENT_AD_READY:
-                return showCustomEventInterstitialView();
+                return showCustomEventInterstitialView(holder);
         }
         return null;
     }
 
-    private View showCustomEventInterstitialView() {
+    private View showCustomEventInterstitialView(ViewGroup holder) {
         if (mCustomEventInterstitialAdapter != null) {
-            return mCustomEventInterstitialAdapter.showInterstitialView();
+            return mCustomEventInterstitialAdapter.showInterstitialView(holder);
         }
         else {
             return null;

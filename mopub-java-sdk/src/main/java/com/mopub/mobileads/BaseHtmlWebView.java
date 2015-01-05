@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Color;
 import android.view.MotionEvent;
 import android.view.View;
+
+import com.mopub.common.Constants;
 import com.mopub.common.logging.MoPubLog;
 
 import static com.mopub.common.util.VersionCode.ICE_CREAM_SANDWICH;
@@ -51,8 +53,9 @@ public class BaseHtmlWebView extends BaseWebView implements UserClickListener {
         getSettings().setSupportZoom(false);
     }
 
-    public void loadHtmlResponse(String htmlResponse) {
-        loadDataWithBaseURL("http://ads.mopub.com/", htmlResponse, "text/html", "utf-8", null);
+    void loadHtmlResponse(String htmlResponse) {
+        loadDataWithBaseURL("http://" + Constants.HOST + "/", htmlResponse, "text/html", "utf-8",
+                null);
     }
 
     void initializeOnTouchListener(final boolean isScrollable) {

@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.VideoView;
 
 import com.mopub.common.CacheService;
@@ -51,12 +52,12 @@ class VastVideoInterstitial extends ResponseBodyInterstitial implements VastMana
     }
 
     @Override
-    protected void showInterstitial() {
+    public void showInterstitial() {
         MraidVideoPlayerActivity.startVast(mContext, mVastVideoConfiguration, mAdConfiguration);
     }
 
     @Override
-    protected void onInvalidate() {
+    public void onInvalidate() {
         if (mVastManager != null) {
             mVastManager.cancel();
         }
@@ -91,7 +92,7 @@ class VastVideoInterstitial extends ResponseBodyInterstitial implements VastMana
     }
 
 	@Override
-	public View showInterstitialView() {
+	public View showInterstitialView(ViewGroup holder) {
 		
 		Intent intentVideoPlayerActivity = startVastPostitial(mContext, mVastVideoConfiguration, mAdConfiguration);				
 		
