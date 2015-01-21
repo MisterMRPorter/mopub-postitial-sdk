@@ -1,12 +1,21 @@
 package com.mopub.mobileads;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.Handler;
+import android.util.Log;
+import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.RelativeLayout;
 
+import com.IQzone.android.resource.layout.ProgressInflater;
 import com.mopub.common.MoPubBrowser;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.IntentUtils;
@@ -23,38 +32,93 @@ public class HtmlWebViewClient extends WebViewClient {
     private BaseHtmlWebView mHtmlWebView;
     private final String mClickthroughUrl;
     private final String mRedirectUrl;
+    protected boolean timerDone = false;
+    private AdConfiguration adConfiguration;
+    private ViewGroup holder;
 
-    HtmlWebViewClient(HtmlWebViewListener htmlWebViewListener, BaseHtmlWebView htmlWebView, String clickthrough, String redirect) {
+    HtmlWebViewClient(HtmlWebViewListener htmlWebViewListener, BaseHtmlWebView htmlWebView, String clickthrough, String redirect, AdConfiguration adConfig) {
         mHtmlWebViewListener = htmlWebViewListener;
         mHtmlWebView = htmlWebView;
         mClickthroughUrl = clickthrough;
         mRedirectUrl = redirect;
         mContext = htmlWebView.getContext();
+        adConfiguration = adConfig;
     }
 
     @Override
-    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+    public boolean shouldOverrideUrlLoading(WebView view, final String url) {
         if (handleSpecialMoPubScheme(url) || handlePhoneScheme(url) || handleNativeBrowserScheme(url)) {
             return true;
         }
 
         MoPubLog.d("Ad clicked. Click URL: " + url);
-
-        // this is added because http/s can also be intercepted
-        if (!isWebSiteUrl(url) && IntentUtils.canHandleApplicationUrl(mContext, url)) {
-            if (launchApplicationUrl(url)) {
-                return true;
+        
+        Log.d("postitial", "progressSpinCheck adclicked");
+        //IF POSTITIAL THROW UP PROGRESS SPIN AND WAIT UNTIL TIMER ENDS TO SHOW MOPUBBROWSER
+        if(!adConfiguration.isPostitial()) {
+            Log.d("postitial", "progressSpinCheck shouldnt run unless NOT postitial");
+            // this is added because http/s can also be intercepted
+            if (!isWebSiteUrl(url) && IntentUtils.canHandleApplicationUrl(mContext, url)) {
+                if (launchApplicationUrl(url)) {
+                    return true;
+                }
             }
+    
+            showMoPubBrowserForUrl(url);
+            return true;
+        }
+        
+        else {
+            
+            final RelativeLayout progressSpin = (RelativeLayout) new ProgressInflater(mContext).getView();   
+            final RelativeLayout blackBackground = new RelativeLayout(mContext); 
+            blackBackground.setBackgroundColor(Color.BLACK);
+            holder.addView(blackBackground);
+            holder.addView(progressSpin);
+            
+            final Handler handler = new Handler();
+            
+            final Runnable progressSpinCheck = new Runnable() {
+        
+                        @Override
+                        public void run() {
+                            
+                            if(timerDone) {
+                                
+                            Log.d("postitial", "progressSpinCheck timerDone");
+                            
+                            // this is added because http/s can also be intercepted
+                            if (!isWebSiteUrl(url) && IntentUtils.canHandleApplicationUrl(mContext, url)) {
+                                if (launchApplicationUrl(url)) {
+                                }
+                            }
+                    
+                            showMoPubBrowserForUrl(url);
+                            
+                            }
+                            else {
+                                 handler.postDelayed(this, 100);
+                                 Log.d("postitial", "progressSpinCheck else postdelayed this");
+                            }
+                            
+                        }
+            };
+                        
+            handler.postDelayed(progressSpinCheck, 100);
+            
+            Log.d("postitial", "progressSpinCheck return true");
+            
+            return true;
+                            
         }
 
-        showMoPubBrowserForUrl(url);
-        return true;
     }
 
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
         // If the URL being loaded shares the redirectUrl prefix, open it in the browser.
         if (mRedirectUrl != null && url.startsWith(mRedirectUrl)) {
+            Log.d("postitial", "progressSpinCheck onPageStarted");
             view.stopLoading();
             showMoPubBrowserForUrl(url);
         }
@@ -212,5 +276,25 @@ public class HtmlWebViewClient extends WebViewClient {
         }
 
         return wasIntentStarted;
+    }
+    
+    //POSTITIAL TIMER
+    public void timerStart() {
+        
+        timerDone = false;
+        
+        Timer timer = new Timer();
+        
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {           
+               timerDone = true;
+            }
+        }, 7000);
+        
+    }
+
+    public void setHolder(ViewGroup holder) {
+        this.holder = holder;
     }
 }

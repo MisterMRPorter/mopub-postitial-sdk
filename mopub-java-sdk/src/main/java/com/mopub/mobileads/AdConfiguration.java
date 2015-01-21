@@ -3,6 +3,7 @@ package com.mopub.mobileads;
 import android.content.Context;
 import android.os.Build;
 import android.provider.Settings;
+import android.view.ViewGroup;
 import android.webkit.WebView;
 
 import com.mopub.common.MoPub;
@@ -69,6 +70,10 @@ public class AdConfiguration implements Serializable {
     
     private boolean postitial;
 	private VastVideoConfiguration vastVideoConfiguration;
+
+    private ViewGroup holder;
+
+    private HtmlWebViewClient htmlWebViewClient;
 
     public static AdConfiguration extractFromMap(Map<String, Object> map) {
         if (map == null) {
@@ -321,6 +326,22 @@ public class AdConfiguration implements Serializable {
     
     public MraidController getMraidController() {       
         return mMraidController; 
+    }
+
+    public void setHolder(ViewGroup holder) {
+        this.holder = holder;      
+    }
+    
+    public ViewGroup getHolder() {
+        return holder;      
+    }
+
+    public void setHtmlWebViewClient(HtmlWebViewClient htmlWebViewClient) {       
+        this.htmlWebViewClient = htmlWebViewClient;       
+    }
+    
+    public HtmlWebViewClient getHtmlWebViewClient() {
+        return htmlWebViewClient;
     }
 	
 }

@@ -101,6 +101,14 @@
 			<version>5.1.0</version>
 			<scope>provided</scope>
 		</dependency>
+		
+		<dependency>
+            <groupId>iqzone</groupId>
+            <artifactId>iq-android-common</artifactId>
+            <version>dev-${postitial-version}-SNAPSHOT</version>
+        </dependency>
+		
+		
 
 	</dependencies>
 </project>

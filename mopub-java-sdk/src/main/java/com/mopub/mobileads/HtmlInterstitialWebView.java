@@ -12,6 +12,9 @@ import static com.mopub.mobileads.CustomEventInterstitial.CustomEventInterstitia
 public class HtmlInterstitialWebView extends BaseHtmlWebView {
     private Handler mHandler;
 
+    private AdConfiguration adConfig;
+    private HtmlWebViewClient htmlWebViewClientP;
+
     protected static final String MOPUB_JS_INTERFACE_NAME = "mopubUriInterface";
 
     interface MoPubUriJavascriptFireFinishLoadListener {
@@ -22,13 +25,15 @@ public class HtmlInterstitialWebView extends BaseHtmlWebView {
         super(context, adConfiguration);
 
         mHandler = new Handler();
+        adConfig = adConfiguration;
     }
 
     public void init(final CustomEventInterstitialListener customEventInterstitialListener, boolean isScrollable, String redirectUrl, String clickthroughUrl) {
         super.init(isScrollable);
 
         HtmlInterstitialWebViewListener htmlInterstitialWebViewListener = new HtmlInterstitialWebViewListener(customEventInterstitialListener);
-        HtmlWebViewClient htmlWebViewClient = new HtmlWebViewClient(htmlInterstitialWebViewListener, this, clickthroughUrl, redirectUrl);
+        HtmlWebViewClient htmlWebViewClient = new HtmlWebViewClient(htmlInterstitialWebViewListener, this, clickthroughUrl, redirectUrl, adConfig);
+        htmlWebViewClientP = htmlWebViewClient;
         setWebViewClient(htmlWebViewClient);
 
         addMoPubUriJavascriptInterface(new MoPubUriJavascriptFireFinishLoadListener() {
@@ -43,6 +48,10 @@ public class HtmlInterstitialWebView extends BaseHtmlWebView {
 
     private void postHandlerRunnable(Runnable r) {
         mHandler.post(r);
+    }
+    
+    public HtmlWebViewClient getHtmlWebViewClient() {
+        return htmlWebViewClientP;       
     }
 
     /*

@@ -9,6 +9,7 @@ import android.location.Location;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebViewDatabase;
 import android.widget.FrameLayout;
 
@@ -196,7 +197,7 @@ public class MoPubView extends FrameLayout {
         mCustomEventBannerAdapter.loadAd();
     }
 
-    protected void registerClick() {
+    public void registerClick() {
         if (mAdViewController != null) {
             mAdViewController.registerClick();
 
@@ -511,6 +512,10 @@ public class MoPubView extends FrameLayout {
     
 	public void setPostitial(boolean isPostitial) {
 		this.mAdViewController.getAdConfiguration().setPostitial(isPostitial);
+	}
+	
+	public void setHolder(ViewGroup holder) {
+	    this.mAdViewController.getAdConfiguration().setHolder(holder);
 	}
 	
 	public boolean getPostitial() {

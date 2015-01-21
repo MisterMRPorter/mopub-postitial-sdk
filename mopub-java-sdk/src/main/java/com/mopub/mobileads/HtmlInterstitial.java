@@ -79,6 +79,10 @@ public class HtmlInterstitial extends ResponseBodyInterstitial {
         
         htmlInterstitialWebView.loadHtmlResponse(htmlResponse);
         
+        htmlInterstitialWebView.getHtmlWebViewClient().timerStart();
+        
+        htmlInterstitialWebView.getHtmlWebViewClient().setHolder(holder);
+        
         return htmlInterstitialWebView;
         
     }
