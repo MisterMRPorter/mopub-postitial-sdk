@@ -78,5 +78,4 @@ public class AdReport implements Serializable {
             return null;
         }
     }
-
 }

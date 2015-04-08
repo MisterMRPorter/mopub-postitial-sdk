@@ -16,7 +16,6 @@ import com.mopub.mraid.MraidController.MraidListener;
 import java.util.Map;
 
 import static com.mopub.common.DataKeys.AD_REPORT_KEY;
-import static com.mopub.common.DataKeys.BROADCAST_IDENTIFIER_KEY;
 import static com.mopub.common.DataKeys.HTML_RESPONSE_BODY_KEY;
 import static com.mopub.mobileads.MoPubErrorCode.MRAID_LOAD_ERROR;
 
@@ -25,6 +24,7 @@ class MraidBanner extends CustomEventBanner {
     @Nullable private MraidController mMraidController;
     @Nullable private CustomEventBannerListener mBannerListener;
     @Nullable private MraidWebViewDebugListener mDebugListener;
+	private AdViewController adViewController;
 
     @Override
     protected void loadBanner(@NonNull Context context,
@@ -51,6 +51,8 @@ class MraidBanner extends CustomEventBanner {
             return;
         }
 
+        adViewController.setMraidController(mMraidController);
+        
         mMraidController.setDebugListener(mDebugListener);
         mMraidController.setMraidListener(new MraidListener() {
             @Override
@@ -109,4 +111,9 @@ class MraidBanner extends CustomEventBanner {
             mMraidController.setDebugListener(debugListener);
         }
     }
+    
+    public void setAdViewController(AdViewController adViewController){
+    	this.adViewController = adViewController;
+    }
+    
 }

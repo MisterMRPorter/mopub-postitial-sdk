@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.VideoView;
+
 import com.mopub.common.DownloadResponse;
 import com.mopub.common.DownloadTask;
 import com.mopub.common.HttpResponses;
@@ -34,11 +35,14 @@ import com.mopub.exceptions.IntentNotResolvableException;
 import com.mopub.exceptions.UrlParseException;
 import com.mopub.mobileads.util.vast.VastCompanionAd;
 import com.mopub.mobileads.util.vast.VastVideoConfiguration;
+
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.Serializable;
+import java.util.List;
 
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
 import static com.mopub.common.HttpClient.initializeHttpGet;
@@ -504,45 +508,49 @@ public class VastVideoViewController extends BaseVideoViewController implements 
 
     // for testing
     @Deprecated
-
+    @VisibleForTesting
     boolean getIsVideoProgressShouldBeChecked() {
         return mIsVideoProgressShouldBeChecked;
     }
 
     // for testing
     @Deprecated
-
+    @VisibleForTesting
     int getVideoRetries() {
         return mVideoRetries;
     }
 
     // for testing
     @Deprecated
-
+    @VisibleForTesting
     int getShowCloseButtonDelay() {
         return mShowCloseButtonDelay;
     }
 
     // for testing
     @Deprecated
+    @VisibleForTesting
     boolean isShowCloseButtonEventFired() {
         return mShowCloseButtonEventFired;
     }
 
     // for testing
     @Deprecated
+    @VisibleForTesting
     void setCloseButtonVisible(boolean visible) {
         mShowCloseButtonEventFired = visible;
     }
 
     // for testing
     @Deprecated
+    @VisibleForTesting
     boolean isVideoFinishedPlaying() {
         return mIsVideoFinishedPlaying;
     }
 
     // for testing
     @Deprecated
+    @VisibleForTesting
     ImageView getCompanionAdImageView() {
         return mCompanionAdImageView;
     }

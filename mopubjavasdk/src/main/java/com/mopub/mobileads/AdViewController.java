@@ -44,7 +44,6 @@ import static com.mopub.network.MoPubNetworkError.Reason.NO_FILL;
 import static com.mopub.network.MoPubNetworkError.Reason.WARMING_UP;
 
 public class AdViewController {
-    static final int MINIMUM_REFRESH_TIME_MILLISECONDS = 10000;  // 10 seconds
     static final int DEFAULT_REFRESH_TIME_MILLISECONDS = 60000;  // 1 minute
     static final int MAX_REFRESH_TIME_MILLISECONDS = 600000; // 10 minutes
     static final double BACKOFF_FACTOR = 1.5;
@@ -57,6 +56,8 @@ public class AdViewController {
 
     private final Context mContext;
     private final long mBroadcastIdentifier;
+
+    @Nullable
     private MoPubView mMoPubView;
     private final WebViewAdUrlGenerator mUrlGenerator;
 
@@ -107,7 +108,7 @@ public class AdViewController {
         mMoPubView = view;
         // Default timeout means "never refresh"
         mTimeoutMilliseconds = -1;
-        mBroadcastIdentifier = Utils.generateUniqueId();      
+        mBroadcastIdentifier = Utils.generateUniqueId();
 
         mUrlGenerator = new WebViewAdUrlGenerator(context,
                 MraidNativeCommandHandler.isStorePictureSupported(mContext));
@@ -131,7 +132,6 @@ public class AdViewController {
         };
         mRefreshTimeMillis = DEFAULT_REFRESH_TIME_MILLISECONDS;
         mHandler = new Handler();
-
     }
 
     @VisibleForTesting
@@ -141,10 +141,7 @@ public class AdViewController {
         // Do other ad loading setup. See AdFetcher & AdLoadTask.
         mTimeoutMilliseconds = mAdResponse.getAdTimeoutMillis() == null
                 ? mTimeoutMilliseconds : mAdResponse.getAdTimeoutMillis();
-        Integer refreshTime = mAdResponse.getRefreshTimeMillis();
-        if (refreshTime != null) {
-            mRefreshTimeMillis = refreshTime;
-        }
+        mRefreshTimeMillis = mAdResponse.getRefreshTimeMillis();
         setNotLoading();
 
         // Get our custom event from the ad response and load into the view.
@@ -176,6 +173,7 @@ public class AdViewController {
         adDidFail(errorCode);
     }
 
+    @Nullable
     public MoPubView getMoPubView() {
         return mMoPubView;
     }
@@ -275,13 +273,13 @@ public class AdViewController {
         return mAdUnitId;
     }
 
-    public void setAdUnitId(String adUnitId) {
+    public void setAdUnitId(@NonNull String adUnitId) {
         mAdUnitId = adUnitId;
     }
 
     public long getBroadcastIdentifier() {
         return mBroadcastIdentifier;
-    } 
+    }
 
     public void setTimeout(int milliseconds) {
        mTimeoutMilliseconds = milliseconds;
@@ -420,8 +418,16 @@ public class AdViewController {
     }
 
     void fetchAd(String url) {
+        MoPubView moPubView = getMoPubView();
+        if (moPubView == null) {
+            MoPubLog.d("Can't load an ad in this ad view because it was destroyed.");
+            setNotLoading();
+            return;
+        }
+
         AdRequest adRequest = new AdRequest(url,
-                mMoPubView.getAdFormat(),
+                moPubView.getAdFormat(),
+                mAdUnitId,
                 mAdListener
         );
         RequestQueue requestQueue = Networking.getRequestQueue(mContext);
@@ -445,8 +451,14 @@ public class AdViewController {
     void adDidFail(MoPubErrorCode errorCode) {
         MoPubLog.i("Ad failed to load.");
         setNotLoading();
+
+        MoPubView moPubView = getMoPubView();
+        if (moPubView == null) {
+            return;
+        }
+
         scheduleRefreshTimerIfEnabled();
-        getMoPubView().adFailed(errorCode);
+        moPubView.adFailed(errorCode);
     }
 
     void scheduleRefreshTimerIfEnabled() {

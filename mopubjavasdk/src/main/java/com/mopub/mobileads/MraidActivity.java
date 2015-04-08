@@ -1,10 +1,8 @@
 package com.mopub.mobileads;
 
-import android.annotation.TargetApi;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
@@ -26,8 +24,6 @@ import com.mopub.mraid.MraidController.UseCustomCloseListener;
 import com.mopub.mraid.MraidWebViewDebugListener;
 import com.mopub.mraid.PlacementType;
 
-import static com.mopub.common.util.VersionCode.ICE_CREAM_SANDWICH;
-import static com.mopub.common.util.VersionCode.currentApiLevel;
 import static com.mopub.common.DataKeys.AD_REPORT_KEY;
 import static com.mopub.common.DataKeys.BROADCAST_IDENTIFIER_KEY;
 import static com.mopub.common.DataKeys.HTML_RESPONSE_BODY_KEY;
@@ -177,7 +173,7 @@ public class MraidActivity extends BaseInterstitialActivity {
     @Override
     protected void onPause() {
         if (mMraidController != null) {
-            mMraidController.pause();
+            mMraidController.pause(isFinishing());
         }
         super.onPause();
     }

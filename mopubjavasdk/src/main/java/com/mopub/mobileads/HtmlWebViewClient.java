@@ -18,6 +18,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
@@ -225,6 +226,12 @@ public class HtmlWebViewClient extends WebViewClient {
         	
 	        final RelativeLayout progressSpin = (RelativeLayout) new ProgressInflater(mContext).getView();   
 	        final RelativeLayout blackBackground = new RelativeLayout(mContext); 
+	        final RelativeLayout.LayoutParams wrapParams =
+                    new RelativeLayout.LayoutParams(
+                        LayoutParams.MATCH_PARENT,
+                        LayoutParams.MATCH_PARENT
+                    );                
+            wrapParams.addRule(RelativeLayout.CENTER_IN_PARENT);
 	        blackBackground.setBackgroundColor(Color.BLACK);
 	        holder.addView(blackBackground);
 	        holder.addView(progressSpin);
@@ -240,6 +247,7 @@ public class HtmlWebViewClient extends WebViewClient {
 	                        	
 	                    		if(isAppOnForeground(context)) {	                    		
 		            		        try {
+		            		        	holder.updateViewLayout(progressSpin, wrapParams);
 		            		            Intents.startActivity(context, intent);
 		            		            mHtmlWebViewListener.onClicked();
 		            		            mHtmlWebView.onResetUserClick();
