@@ -19,7 +19,7 @@ import com.mopub.common.AdReport;
 import com.mopub.common.ClientMetadata;
 import com.mopub.common.Constants;
 import com.mopub.common.VisibleForTesting;
-import com.mopub.common.event.MoPubEvents;
+import com.mopub.common.event.BaseEvent;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.Dips;
 import com.mopub.common.util.Utils;
@@ -54,17 +54,19 @@ public class AdViewController {
                     Gravity.CENTER);
     private final static WeakHashMap<View,Boolean> sViewShouldHonorServerDimensions = new WeakHashMap<View, Boolean>();
 
-    private final Context mContext;
     private final long mBroadcastIdentifier;
 
     @Nullable
+    private Context mContext;
+    @Nullable
     private MoPubView mMoPubView;
-    private final WebViewAdUrlGenerator mUrlGenerator;
+    @Nullable
+    private WebViewAdUrlGenerator mUrlGenerator;
 
     @Nullable
     private AdResponse mAdResponse;
     private final Runnable mRefreshRunnable;
-    @Nullable
+    @NonNull
     private final AdRequest.Listener mAdListener;
 
     private boolean mIsDestroyed;
@@ -103,14 +105,15 @@ public class AdViewController {
         return sViewShouldHonorServerDimensions.get(view) != null;
     }
 
-    public AdViewController(Context context, MoPubView view) {
+    public AdViewController(@NonNull Context context, @NonNull MoPubView view) {
         mContext = context;
         mMoPubView = view;
+
         // Default timeout means "never refresh"
         mTimeoutMilliseconds = -1;
         mBroadcastIdentifier = Utils.generateUniqueId();
 
-        mUrlGenerator = new WebViewAdUrlGenerator(context,
+        mUrlGenerator = new WebViewAdUrlGenerator(mContext.getApplicationContext(),
                 MraidNativeCommandHandler.isStorePictureSupported(mContext));
 
         mAdListener = new AdRequest.Listener() {
@@ -158,7 +161,9 @@ public class AdViewController {
         // Handle errors. Do backoff & retry if it makes sense.
         if (error instanceof MoPubNetworkError) {
             MoPubNetworkError mpError = (MoPubNetworkError) error;
-            if (mpError.getReason() == NO_FILL || mpError.getReason() == WARMING_UP) {
+            if (mpError.getReason() == WARMING_UP) {
+                errorCode = MoPubErrorCode.WARMUP;
+            } else if (mpError.getReason() == NO_FILL) {
                 errorCode = MoPubErrorCode.NO_FILL;
             }
         }
@@ -394,6 +399,8 @@ public class AdViewController {
         // thanks to some persistent references in WebViewCore. We manually release some resources
         // to compensate for this "leak".
         mMoPubView = null;
+        mContext = null;
+        mUrlGenerator = null;
 
         // Flag as destroyed. LoadUrlTask checks this before proceeding in its onPostExecute().
         mIsDestroyed = true;
@@ -406,20 +413,20 @@ public class AdViewController {
     void trackImpression() {
         if (mAdResponse != null) {
             TrackingRequest.makeTrackingHttpRequest(mAdResponse.getImpressionTrackingUrl(),
-                    mContext, MoPubEvents.Type.IMPRESSION_REQUEST);
+                    mContext, BaseEvent.Name.IMPRESSION_REQUEST);
         }
     }
 
     void registerClick() {
         if (mAdResponse != null) {
             TrackingRequest.makeTrackingHttpRequest(mAdResponse.getClickTrackingUrl(),
-                    mContext, MoPubEvents.Type.CLICK_REQUEST);
+                    mContext, BaseEvent.Name.CLICK_REQUEST);
         }
     }
 
     void fetchAd(String url) {
         MoPubView moPubView = getMoPubView();
-        if (moPubView == null) {
+        if (moPubView == null || mContext == null) {
             MoPubLog.d("Can't load an ad in this ad view because it was destroyed.");
             setNotLoading();
             return;
@@ -428,6 +435,7 @@ public class AdViewController {
         AdRequest adRequest = new AdRequest(url,
                 moPubView.getAdFormat(),
                 mAdUnitId,
+                mContext,
                 mAdListener
         );
         RequestQueue requestQueue = Networking.getRequestQueue(mContext);
@@ -440,8 +448,9 @@ public class AdViewController {
         loadAd();
     }
 
+    @Nullable
     String generateAdUrl() {
-        return mUrlGenerator
+        return mUrlGenerator == null ? null : mUrlGenerator
                 .withAdUnitId(mAdUnitId)
                 .withKeywords(mKeywords)
                 .withLocation(mLocation)
@@ -491,6 +500,9 @@ public class AdViewController {
     }
 
     private boolean isNetworkAvailable() {
+        if (mContext == null) {
+            return false;
+        }
         // If we don't have network state access, just assume the network is up.
         int result = mContext.checkCallingPermission(ACCESS_NETWORK_STATE);
         if (result == PackageManager.PERMISSION_DENIED) return true;

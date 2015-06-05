@@ -48,13 +48,14 @@ public class HtmlWebViewClient extends WebViewClient {
 	private boolean timerRunning = false;
     protected boolean timerDone = false;
 	protected boolean returnBoolean = true;
+	private boolean wasClicked = false;
 
     HtmlWebViewClient(HtmlWebViewListener htmlWebViewListener, BaseHtmlWebView htmlWebView, String clickthrough, String redirect) {
         mHtmlWebViewListener = htmlWebViewListener;
         mHtmlWebView = htmlWebView;
         mClickthroughUrl = clickthrough;
         mRedirectUrl = redirect;
-        mContext = htmlWebView.getContext();  
+        mContext = htmlWebView.getContext();
     }
 
     /**
@@ -63,7 +64,7 @@ public class HtmlWebViewClient extends WebViewClient {
      * in the corresponding application, and all other links in the MoPub in-app browser.
      */
     @Override
-    public boolean shouldOverrideUrlLoading(WebView view, final String url) {
+    public boolean shouldOverrideUrlLoading(WebView view, String url) {
         MoPubLog.d("Ad clicked. Click URL: " + url);
 
         if (handleSpecialMoPubScheme(url) || handlePhoneScheme(url)) {
@@ -80,7 +81,7 @@ public class HtmlWebViewClient extends WebViewClient {
                 launchIntentForUserClick(mContext, intent, errorMessage);
             } catch (UrlParseException e) {
                 MoPubLog.d(errorMessage + ". " + e.getMessage());
-			}
+            }
 
             return true;
         }
@@ -90,10 +91,9 @@ public class HtmlWebViewClient extends WebViewClient {
             launchApplicationUrl(url);
             return true;
         }
-        
-            showMoPubBrowserForUrl(url);
-            return true;
 
+        showMoPubBrowserForUrl(url);
+        return true;
     }
 
     @Override
@@ -211,6 +211,10 @@ public class HtmlWebViewClient extends WebViewClient {
     boolean launchIntentForUserClick(@Nullable final Context context, @NonNull final Intent intent,
             @Nullable final String errorMessage) {
         Preconditions.NoThrow.checkNotNull(intent);
+        
+        if(wasClicked == true) {
+        	return false;
+        }
 
         if (context == null) {
             MoPubLog.d(errorMessage);
@@ -219,10 +223,11 @@ public class HtmlWebViewClient extends WebViewClient {
 
         if (!mHtmlWebView.wasClicked()) {
             return false;
-        }
-        
+        }      
         
         if(adViewController.isPostitial()){
+        	
+            wasClicked  = true;
         	
 	        final RelativeLayout progressSpin = (RelativeLayout) new ProgressInflater(mContext).getView();   
 	        final RelativeLayout blackBackground = new RelativeLayout(mContext); 
@@ -246,12 +251,18 @@ public class HtmlWebViewClient extends WebViewClient {
 	                    	if(timerDone) {
 	                        	
 	                    		if(isAppOnForeground(context)) {	                    		
-		            		        try {
-		            		        	holder.updateViewLayout(progressSpin, wrapParams);
+		            		        try {		            		        	
 		            		            Intents.startActivity(context, intent);
 		            		            mHtmlWebViewListener.onClicked();
 		            		            mHtmlWebView.onResetUserClick();
 		            		            returnBoolean  = true;
+		            		            final Runnable wasClickedRunner = new Runnable() {   
+		            	                    @Override
+		            	                    public void run() {
+		            	                    	wasClicked = false;
+		            	                    }
+		            		            };
+		            		            handler.postDelayed(wasClickedRunner, 2000);
 		            		        } catch (IntentNotResolvableException e) {
 		            		            MoPubLog.d(errorMessage);
 		            		            returnBoolean = false;
@@ -304,6 +315,10 @@ public class HtmlWebViewClient extends WebViewClient {
             }
         }, 7000);
         
+    }
+    
+    public boolean getWasClicked() {
+    	return wasClicked;
     }
 
     public void setHolder(ViewGroup holder) {

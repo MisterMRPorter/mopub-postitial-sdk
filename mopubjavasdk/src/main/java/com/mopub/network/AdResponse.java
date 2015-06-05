@@ -37,6 +37,8 @@ public class AdResponse implements Serializable {
     private final String mImpressionTrackingUrl;
     @Nullable
     private final String mFailoverUrl;
+    @Nullable
+    private final String mRequestId;
 
     @Nullable
     private final Integer mWidth;
@@ -83,6 +85,7 @@ public class AdResponse implements Serializable {
         mClickTrackingUrl = builder.clickTrackingUrl;
         mImpressionTrackingUrl = builder.impressionTrackingUrl;
         mFailoverUrl = builder.failoverUrl;
+        mRequestId = builder.requestId;
         mWidth = builder.width;
         mHeight = builder.height;
         mAdTimeoutDelayMillis = builder.adTimeoutDelayMillis;
@@ -148,6 +151,11 @@ public class AdResponse implements Serializable {
     @Nullable
     public String getFailoverUrl() {
         return mFailoverUrl;
+    }
+
+    @Nullable
+    public String getRequestId() {
+        return mRequestId;
     }
 
     public boolean isScrollable() {
@@ -223,6 +231,7 @@ public class AdResponse implements Serializable {
         private String clickTrackingUrl;
         private String impressionTrackingUrl;
         private String failoverUrl;
+        private String requestId;
 
         private Integer width;
         private Integer height;
@@ -275,6 +284,11 @@ public class AdResponse implements Serializable {
 
         public Builder setFailoverUrl(@Nullable final String failoverUrl) {
             this.failoverUrl = failoverUrl;
+            return this;
+        }
+
+        public Builder setRequestId(@Nullable final String requestId) {
+            this.requestId = requestId;
             return this;
         }
 

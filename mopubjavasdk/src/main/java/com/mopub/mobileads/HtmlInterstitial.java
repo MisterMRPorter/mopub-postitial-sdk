@@ -1,6 +1,5 @@
 package com.mopub.mobileads;
 
-//new imports
 import java.util.Map;
 
 import static com.mopub.common.DataKeys.CLICKTHROUGH_URL_KEY;
@@ -8,7 +7,6 @@ import static com.mopub.common.DataKeys.HTML_RESPONSE_BODY_KEY;
 import static com.mopub.common.DataKeys.REDIRECT_URL_KEY;
 import static com.mopub.common.DataKeys.SCROLLABLE_KEY;
 
-//old imports
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
@@ -23,7 +21,6 @@ import static com.mopub.mobileads.BaseInterstitialActivity.JavaScriptWebViewCall
 
 public class HtmlInterstitial extends ResponseBodyInterstitial {
     
-//old stuff
     static final String BROADCAST_IDENTIFIER_KEY = "broadcastIdentifier";
     static final String ACTION_INTERSTITIAL_FAIL = "com.mopub.action.interstitial.fail";
     static final String ACTION_INTERSTITIAL_SHOW = "com.mopub.action.interstitial.show";

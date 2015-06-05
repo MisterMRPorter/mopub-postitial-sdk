@@ -222,6 +222,7 @@ public class MoPubRewardedVideoManager {
                 adUrlString,
                 AdFormat.REWARDED_VIDEO,
                 adUnitId,
+                sInstance.mContext,
                 new RewardedVideoRequestListener(sInstance, adUnitId)
         );
         final RequestQueue requestQueue = Networking.getRequestQueue(sInstance.mContext);
